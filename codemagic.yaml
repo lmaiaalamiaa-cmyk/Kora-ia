@@ -1,0 +1,30 @@
+workflows:
+  kora-android-preview:
+    name: Kora AI Android APK (preview)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      vars:
+        # Replace with the public HTTPS URL of your deployed backend before a live-data build.
+        API_BASE_URL: "https://YOUR-BACKEND-URL"
+    scripts:
+      - name: Extract Flutter project archive
+        script: |
+          mkdir -p _kora_source
+          unzip -q kora_ai_cloudbuild.zip -d _kora_source
+      - name: Generate Android project files
+        script: |
+          cd _kora_source/android_app
+          flutter create --platforms=android --org com.koraai .
+      - name: Install Flutter packages
+        script: |
+          cd _kora_source/android_app
+          flutter pub get
+      - name: Build installable debug APK
+        script: |
+          cd _kora_source/android_app
+          flutter build apk --debug --dart-define=API_BASE_URL="$API_BASE_URL"
+    artifacts:
+      - _kora_source/android_app/build/app/outputs/flutter-apk/app-debug.apk
+      - _kora_source/android_app/build/**/outputs/**/*.log
